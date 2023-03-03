@@ -1,0 +1,36 @@
+body{
+    font-family:Raleway, Helvetica;
+    margin-left:auto;
+    margin-right:auto;
+    width:80%;
+}
+
+.mappingvis{
+    //border:thin black solid;
+    width:100%;
+    display:grid;
+    grid-template-rows:auto;
+}
+
+.mappingvis>.mappingvistitle{
+    padding-left:5px;
+    font-size:larger;
+    padding-bottom:5px;
+}
+
+.mappingvis>.keyvalue{
+    display:grid;
+    grid-template-columns:25fr 75fr;
+}
+
+.mappingvis>.keyvalue>.key{
+    //border-right:thin black solid;
+    text-align:right;
+    padding-right:2px;
+}
+
+.mappingvis>.keyvalue>.value{
+    text-align:left;
+    padding-left:2px;
+}
+
