@@ -3,7 +3,7 @@ import sys
 from setuptools import setup, find_packages
 
 setup(
-    name="repvis",
+    name="docvis",
     version="0.0.1",
     description="Composable standalone documents",
     long_description=open("README.rst").read(),
@@ -16,5 +16,5 @@ setup(
     keywords="",
     setup_requires=["pytest-runner"] if any(x in ("pytest", "test") for x in sys.argv) else [],
     tests_require=["pytest",],
-    install_requires=['repvis'],
+    install_requires=[""],
     classifiers=[])
