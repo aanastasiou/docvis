@@ -12,18 +12,9 @@ that produce markdown should be nested within the elements that produce HTML (If
 :date: Mar 2023
 """
 
-import jinja2
 import os
-import shutil
-import json
 import collections
 import functools
-import markdown
-
-import bokeh.plotting
-import bokeh.embed
-import bokeh.core.properties
-import bokeh.models
 
 
 HTMLRenderedElement = collections.namedtuple("HTMLRenderedElement", ["extra_resources", "code"])
@@ -66,10 +57,15 @@ class HTMLTag:
         else:
             start_tag = end_tag = ""
 
-        rendered_content = f"{start_tag}\n{self._content}\n{end_tag}"
+        if len(self._content) > 0:
+            rendered_content = f"{start_tag}\n{self._content}\n{end_tag}"
+        else:
+            rendered_content = f"{start_tag}{end_tag}"
+
 
         return HTMLRenderedElement(extra_resources=self._external_resources, 
                                    code=rendered_content)
+
 
 class HTMLNestedTag(HTMLTag):
     """
@@ -89,15 +85,14 @@ class HTMLNestedTag(HTMLTag):
                                    code = super().render().code)
 
 
-
 class HTMLHead(HTMLNestedTag):
     def __init__(self, children, external_resources=[], attributes={}):
         super().__init__("head", children, external_resources, attributes)
 
 
 class HTMLMeta(HTMLTag):
-    def __init__(self, content, external_resources=[], attributes={}):
-        super().__init__("meta", content, external_resources, attributes)
+    def __init__(self, attributes):
+        super().__init__("meta","", [], attributes, is_empty=True)
 
 
 class HTMLStyleSheet(HTMLTag):
@@ -114,126 +109,59 @@ class HTMLScript(HTMLTag):
     def __init__(self, content, external_resources=[], attributes={}):
         super().__init__("script", "", external_resources, attributes|{"src":content, "defer":""}, is_empty=True)
 
+
 class HTMLTitle(HTMLTag):
     def __init__(self, content):
         super().__init__("title", content)
 
-class HTMLHtml(HTMLNestedTag):
-    pass
 
+class HTMLBody(HTMLNestedTag):
+    def __init__(self, children, external_resources=[], attributes={}):
+        super().__init__("body", children, external_resources, attributes)
 
-class HTMLPage:
-    def __init__(self, html, external_resources=[]):
-        self._external_resources = external_resources
-        self._template_string = """<!DOCTYPE html>\n{{html_contnt}}"""
-
-        # <html>\n    <head>\n        <meta charset=\"utf-8\" />\n{% for res, ext in page_externals %}{% if ext == '.css' %}        <link rel=\"stylesheet\" href=\"{{res}}\">{% endif %}{% if ext == '.js' %}        <script type=\"application/javascript\" src=\"{{res}}\" defer></script>{% endif %}{% if ext == '' %}        {{res}}{% endif %}{% endfor %}        <title>{{page_title}}</title>\n    </head>\n<body>
-        #                                 {{page_body}}
-        #                                 </body>
-        #                             </html>"""
-
-    def render(self,):
-        rendered_body = self._body.render()
-        return jinja2.Template(self._template_string).render({"page_title":self._title,
-                                                              "page_body":rendered_body.code,
-                                                              "page_externals":[(u, os.path.splitext(u)[-1]) for u in (self._external_resources + rendered_body.extra_resources)]})
 
 class HTMLDiv(HTMLNestedTag):
     def __init__(self, children, external_resources=[], attributes={}):
         super().__init__("div", children, external_resources, attributes)
+
 
 class HTMLParagraph(HTMLTag):
     def __init__(self, content, external_resources=[], attributes={}):
         super().__init__("p", content, external_resources, attributes)
 
 
-class HTMLMarkdownDiv(HTMLTag):
-    def __init__(self, markdown_template, context, external_resources=[], attributes={}):
-        super().__init__("div", "", external_resources, attributes)
-        self._markdown_template = markdown_template
-        self._context = context
-
-    def render(self):
-        # Go through the context and render anything that is a renderable
-        html_context = {}
-        ext_resources = []
-        rendered_context = {}
-        for u, v in self._context.items():
-            if issubclass(type(v), HTMLTag):
-                rendered_element = v.render()
-                ext_resources += rendered_element.extra_resources
-                v = rendered_element.code
-            rendered_context[u] = v
-
-        self._content = jinja2.Template(markdown.markdown(self._markdown_template, extensions=["extra", "toc"])).render(rendered_context)
-        return HTMLRenderedElement(extra_resources=ext_resources+self._external_resources, 
-                                   code=super().render())
-
-class HTMLPreProcMarkdownDiv(HTMLTag):
-    """
-    Preprocesses the template and substitutes specific commands with "plots" over a context
-    """
-    def __init__(self, markdown_template, context, external_resources=[], attributes={}):
-        super().__init__("div", "", external_resources, attributes)
-        self._markdown_template = markdown_template
-        self._context = context
-
-    def render(self):
-        # Go through the context and render anything that is a renderable
-        html_context = {}
-        ext_resources = []
-        rendered_context = {}
-        for u, v in self._context.items():
-            if issubclass(type(v), HTMLTag):
-                rendered_element = v.render()
-                ext_resources += rendered_element.extra_resources
-                v = rendered_element.code
-            rendered_context[u] = v
-
-        self._content = jinja2.Template(markdown.markdown(self._markdown_template, extensions=["extra", "toc"])).render(rendered_context)
-        return HTMLRenderedElement(extra_resources=ext_resources+self._external_resources, 
-                                   code=super().render().code)
-
-
-
-class HTMLBokehElement(HTMLTag):
-    def __init__(self, **figure_params):
-        super().__init__("div", "")
-        self._figure_params = {"width":200,
-                               "height":200,
-                               "x_axis_label":"X Axis",
-                               "y_axis_label":"Y Axis",
-                               "title":"Title",
-                               "toolbar_location":"right",}
-                               #"tools":[]}
-        self._figure_params|=figure_params
-        self._figure_object = bokeh.plotting.figure(**self._figure_params)
+class HTMLPage:
+    def __init__(self, html_body, extra_head_components=[]):
+        self._extra_head_components = extra_head_components
+        self._html_body = html_body
 
     def render(self,):
-        script, div = bokeh.embed.components(self._figure_object)
-        self._content = div
-        return HTMLRenderedElement(extra_resources=[script],
-                                   code=super().render().code)
+        # First of all, render the body
+        rendered_body = self._html_body.render()
+        # Now collect the required resources
+        resources = rendered_body.extra_resources
+        head_content = []
+        # Scan the resources and dynamically create the head
+        for a_resource in resources:
+            ext = os.path.splitext(a_resource)[-1]
+            element_to_add = None
+            if ext == '.css':
+                element_to_add = HTMLStylesheet(a_resource)
+            elif ext == ".js":
+                element_to_add = HTMLScript(a_resource)
+            else:
+                element_to_add = HTMLPassthrough(a_resource)
+
+            head_content.append(element_to_add)
+
+        # Add the external head components
+        head_content = head_content + self._extra_head_components
+        rendered_head = HTMLHead(head_content).render().code
+        
+        return f"<!DOCTYPE html>\n{rendered_head}\n{rendered_body.code}"
 
 
-class HTMLBokehLinePlot(HTMLBokehElement):
-    # figure_params = self._style.get_style_attributes(["plot_width", "plot_height", "x_axis_label", "y_axis_label", "title", "toolbar_location", "tools"])
-    def __init__(self, x, y, **figure_params):
-        super().__init__()
-        self._x = x
-        self._y = y
-        default_line_params = {"line_width":1, "line_dash":"solid"}
-        self._line_params = {"line_width": figure_params.get("line_width", default_line_params["line_width"]),
-                             "line_dash" : figure_params.get("line_dash", default_line_params["line_dash"])}
 
-
-    def render(self):
-        x_data = self._x
-        y_data = self._y
-        if self._x is None:
-            x_data = list(range(0,len(self._y)))
-        self._figure_object.line(x=x_data, y=y_data, **self._line_params)
-        return super().render()
 
 
 # class DataToRenderable:
