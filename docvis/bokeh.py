@@ -28,6 +28,44 @@ class HTMLBokehElement(HTMLTag):
                                    code=super().render().code)
 
 
+class HTMLBokehBarPlot(HTMLBokehElement):
+    """
+    Visualises categorical count data (i.e. MeSH terms and number of articles they appear in)
+    """
+    def __init__(self, 
+                 x,
+                 y,
+                 is_vertical = False, 
+                 **figure_params):
+        """
+        A horizontal bar plot
+
+        :param a_query:
+        :param categories_variable:
+        :param count_variable:
+        """
+        super().__init__()
+        self._x = x
+        self._y = y
+        self._is_vertical = is_vertical
+        if self._is_vertical:
+            self._figure_object = bokeh.plotting.figure(x_range = self._x, **self._figure_params)
+        else:
+            self._figure_object = bokeh.plotting.figure(y_range = self._x, **self._figure_params)
+
+    def render(self):
+        if self._is_vertical:
+            self._figure_object.vbar(x = list(map(lambda x:x+0.5,range(0,len(self._x)))),
+                                     top=self._y, 
+                                     width=1.0)
+        else:
+            self._figure_object.hbar(y = list(map(lambda x:x+0.5, range(0, len(self._x)))),
+                                     right=self._y, 
+                                     height=1.0)
+        return super().render()
+
+
+
 class HTMLBokehLinePlot(HTMLBokehElement):
     def __init__(self, x, y, **figure_params):
         super().__init__()
