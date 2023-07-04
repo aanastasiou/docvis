@@ -3,6 +3,18 @@ from .core import HTMLTag, HTMLRenderedElement
 import markdown
 
 class HTMLMarkdownDiv(HTMLTag):
+    """
+    An HTML element that renders as a DIV and contains interpreted Markdown.
+
+    :param markdown_template: Markdown interdispersed with variables and Jinja2 style tags that render variables from the context
+    :type markdown_template: str
+    :param context: A mapping of variable names to values
+    :type context: dict
+    :param external_resources: Any external resources required to render the content of this element.
+    :type external_resources: list
+    :param attributes: A mapping of attribute names to their values
+    :type attributes: dict
+    """
     def __init__(self, markdown_template, context, external_resources=[], attributes={}):
         super().__init__("div", "", external_resources, attributes)
         self._markdown_template = markdown_template

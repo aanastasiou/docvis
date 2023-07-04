@@ -58,9 +58,9 @@ class HTMLTag:
             start_tag = end_tag = ""
 
         if len(self._content) > 0:
-            rendered_content = f"{start_tag}\n{self._content}\n{end_tag}"
+            rendered_content = f"{start_tag}\n{self._content}\n{end_tag}\n"
         else:
-            rendered_content = f"{start_tag}{end_tag}"
+            rendered_content = f"{start_tag}{end_tag}\n"
 
 
         return HTMLRenderedElement(extra_resources=self._external_resources, 
@@ -79,8 +79,9 @@ class HTMLNestedTag(HTMLTag):
         rendered_content =  [u.render() for u in self._children]
         # TODO: HIGH, optimise the following
         self._content = "".join([u.code for u in rendered_content])
-        self._content = "\n".join(map(lambda x:f"    {x}",self._content.split("\n")))
-        deeper_resources = list(set(functools.reduce(lambda x,y:x+y, [u.extra_resources for u in rendered_content], []))) + self._external_resources
+        if len(self._children)>0:
+            self._content = "\n".join(map(lambda x:f"    {x}",self._content.split("\n")))
+        deeper_resources = list(functools.reduce(lambda x,y:x+y, [u.extra_resources for u in rendered_content], [])) + self._external_resources
         return HTMLRenderedElement(extra_resources=deeper_resources, 
                                    code = super().render().code)
 
@@ -95,7 +96,7 @@ class HTMLMeta(HTMLTag):
         super().__init__("meta","", [], attributes, is_empty=True)
 
 
-class HTMLStyleSheet(HTMLTag):
+class HTMLStylesheet(HTMLTag):
     def __init__(self, content, external_resources=[], attributes={}):
         super().__init__("link", "", external_resources, attributes|{"rel":"stylesheet", "href":content}, is_empty=True)
 
@@ -107,7 +108,7 @@ class HTMLPassthrough(HTMLTag):
 
 class HTMLScript(HTMLTag):
     def __init__(self, content, external_resources=[], attributes={}):
-        super().__init__("script", "", external_resources, attributes|{"src":content, "defer":""}, is_empty=True)
+        super().__init__("script", "", external_resources, attributes|{"src":content, "defer":""})
 
 
 class HTMLTitle(HTMLTag):
@@ -139,7 +140,9 @@ class HTMLPage:
         # First of all, render the body
         rendered_body = self._html_body.render()
         # Now collect the required resources
-        resources = rendered_body.extra_resources
+        resources = list(set(rendered_body.extra_resources))
+        # Sort resources so that any file type scripts or stylesheets come first
+        resources = sorted(resources, key = lambda x:0 if '.js' in x or '.css' in x else 1)
         head_content = []
         # Scan the resources and dynamically create the head
         for a_resource in resources:
@@ -155,7 +158,7 @@ class HTMLPage:
             head_content.append(element_to_add)
 
         # Add the external head components
-        head_content = head_content + self._extra_head_components
+        head_content = self._extra_head_components + head_content
         rendered_head = HTMLHead(head_content).render().code
         
         return f"<!DOCTYPE html>\n{rendered_head}\n{rendered_body.code}"

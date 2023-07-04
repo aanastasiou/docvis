@@ -2,13 +2,14 @@ import bokeh.plotting
 import bokeh.embed
 import bokeh.core.properties
 import bokeh.models
+import bokeh.resources
 
-from .core import HTMLTag
+from .core import HTMLTag, HTMLRenderedElement
 
 
 class HTMLBokehElement(HTMLTag):
     def __init__(self, **figure_params):
-        super().__init__("div", "")
+        super().__init__("", "")
         self._figure_params = {"width":200,
                                "height":200,
                                "x_axis_label":"X Axis",
@@ -18,16 +19,16 @@ class HTMLBokehElement(HTMLTag):
                                #"tools":[]}
         self._figure_params|=figure_params
         self._figure_object = bokeh.plotting.figure(**self._figure_params)
+        self._external_resources = bokeh.resources.CDN.js_files
 
     def render(self,):
         script, div = bokeh.embed.components(self._figure_object)
         self._content = div
-        return HTMLRenderedElement(extra_resources=[script],
+        return HTMLRenderedElement(extra_resources=self._external_resources + [script],
                                    code=super().render().code)
 
 
 class HTMLBokehLinePlot(HTMLBokehElement):
-    # figure_params = self._style.get_style_attributes(["plot_width", "plot_height", "x_axis_label", "y_axis_label", "title", "toolbar_location", "tools"])
     def __init__(self, x, y, **figure_params):
         super().__init__()
         self._x = x

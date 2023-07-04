@@ -1,11 +1,19 @@
-import repvis
+from docvis.core import HTMLMeta, HTMLStylesheet, HTMLTitle, HTMLBody, HTMLPage, HTMLScript
+from docvis.markdown import HTMLMarkdownDiv, HTMLPreProcMarkdownDiv
+from docvis.bokeh import HTMLBokehLinePlot
+import sys
 
 if __name__ == "__main__":
-    descriptive_stats = repvis.HTMLTemplatedDocument("body_variable",
-                                                     repvis.MarkdownVisElement("#Descriptive Statistics\n"
-                                                                               "This section provides a drill down aspect to the result set.\n"
-                                                                               "# Papers per institute\n-----\n\n-----\n\n-----\n\n-----"),
-                                                     "basic_html_report.html", 
-                                                     "descstats.html")
+    page_name = "Sample page"
+    # Create a very simple HTML page
+    the_page = HTMLPage(HTMLBody([
+                                  HTMLPreProcMarkdownDiv("# Heading\n\nWelcome to this page. Its name is {{page_name}}\n\nAnd here it is \n\n{{my_plot}}", 
+                                      {"page_name":page_name,
+                                       "my_plot":HTMLBokehLinePlot(x=[0,1,2,3], y=[0,1,2,3])})
+                                 ],["basic_style.css"]), 
+                        [
+                         HTMLMeta({"charset":"utf-8"}), 
+                         HTMLTitle(page_name),
+                        ])
 
-    descriptive_stats.render()
+    sys.stdout.write(the_page.render())
