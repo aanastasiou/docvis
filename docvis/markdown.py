@@ -1,6 +1,7 @@
 import jinja2
 from .core import HTMLTag, HTMLRenderedElement
 import markdown
+from .preprocessor import TemplatePreprocessor
 
 class HTMLMarkdownDiv(HTMLTag):
     """
@@ -40,13 +41,19 @@ class HTMLPreProcMarkdownDiv(HTMLTag):
     """
     Preprocesses the template and substitutes specific commands with "plots" over a context
     """
-    def __init__(self, markdown_template, context, external_resources=[], attributes={}):
+    def __init__(self, markdown_template, function_table, context, external_resources=[], attributes={}):
         super().__init__("div", "", external_resources, attributes)
         self._markdown_template = markdown_template
         self._context = context
+        self._function_table = function_table
+        self._template_preprocessor = TemplatePreprocesor(function_table, context, "%\$", "\$%")
 
     def render(self):
-        # Go through the context and render anything that is a renderable
+        # First pre-process the template to recover all function calls and render their
+        # content
+
+        pre_processed_elements = self._template_preprocessor(self._markdown_template)
+        
         html_context = {}
         ext_resources = []
         rendered_context = {}
@@ -60,5 +67,4 @@ class HTMLPreProcMarkdownDiv(HTMLTag):
         self._content = jinja2.Template(markdown.markdown(self._markdown_template, extensions=["extra", "toc"])).render(rendered_context)
         return HTMLRenderedElement(extra_resources=ext_resources+self._external_resources, 
                                    code=super().render().code)
-
 
