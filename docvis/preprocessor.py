@@ -6,6 +6,12 @@
 
 import lark
 import re
+import collections
+import uuid
+
+
+EvaluatedSegment = collections.namedtuple("EvaluatedSegment",["result", "original_string", "substituted_string"])
+
 
 class AstToValue(lark.Transformer):
     """
@@ -195,23 +201,36 @@ class TemplatePreprocessor:
         """
         Parses a string and evaluates the function_calls safely.
         """
-        to_res = []
+        processed_string = ""
+        evaluation_results = []
         errors = []    
             
-        for seg_idx, a_segment in enumerate(re.compile(mark_start + " *(.*?) *" + mark_end).split(a_string)):
+        for seg_idx, a_segment in enumerate(re.compile(self._mark_start + " *(.*?) *" + self._mark_end).split(a_string)):
             # The splitting results in a string where the odd entries contain the 
             # function calls.
-            if seg_idx % 2 != 0:
+            if seg_idx % 2 == 0:
+                processed_string += a_segment
+            else:
                 # Parse the function call
                 token_stream = self._fun_call_parser.parse(a_segment)
-                # Turn the parsd segment into a computable data structure
+                # Turn the parsed segment into a computable data structure
                 data_value = self._ast_transformer.transform(token_stream)
+                # Evaluate the string
                 try:
                    eval_result = self._function_table[data_value["function_name"]](**data_value["function_parameters"])
-                   to_res += eval_result
+                   # Get a tag to substitute
+                   subst_tag = f"element_{str(uuid.uuid4()).replace('-', '')}"
+                   evaluation_results.append(EvaluatedSegment(result = eval_result,
+                                                              original_string = a_segment,
+                                                              substituted_string = subst_tag))
+                   # If everything has gone well, append the tag that will render this 
+                   # segment.
+                   processed_string += f"{{{{{subst_tag}}}}}"
                 except Exception as e:
+                    # If evaluation run into problems, record the segment where the 
+                    # problem occured in as well as the error
                     errors.append((e, a_segment))
     
-        return to_res, errors
+        return processed_string, evaluation_results, errors
 
 

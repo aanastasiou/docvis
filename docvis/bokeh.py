@@ -44,7 +44,7 @@ class HTMLBokehBarPlot(HTMLBokehElement):
         :param categories_variable:
         :param count_variable:
         """
-        super().__init__()
+        super().__init__(**figure_params)
         self._x = x
         self._y = y
         self._is_vertical = is_vertical
@@ -68,7 +68,7 @@ class HTMLBokehBarPlot(HTMLBokehElement):
 
 class HTMLBokehLinePlot(HTMLBokehElement):
     def __init__(self, x, y, **figure_params):
-        super().__init__()
+        super().__init__(**figure_params)
         self._x = x
         self._y = y
         default_line_params = {"line_width":1, "line_dash":"solid"}

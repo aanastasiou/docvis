@@ -46,25 +46,26 @@ class HTMLPreProcMarkdownDiv(HTMLTag):
         self._markdown_template = markdown_template
         self._context = context
         self._function_table = function_table
-        self._template_preprocessor = TemplatePreprocesor(function_table, context, "%\$", "\$%")
+        self._template_preprocessor = TemplatePreprocessor(function_table, context, "%\$", "\$%")
 
     def render(self):
         # First pre-process the template to recover all function calls and render their
         # content
 
-        pre_processed_elements = self._template_preprocessor(self._markdown_template)
+        pre_proc_string, pre_processed_elements, errors = self._template_preprocessor(self._markdown_template)
         
+        if len(errors) > 0:
+            # Otherwise raise an error exception
+            raise Exception("Errors during plot generation")
+                
         html_context = {}
         ext_resources = []
         rendered_context = {}
-        for u, v in self._context.items():
-            if issubclass(type(v), HTMLTag):
-                rendered_element = v.render()
-                ext_resources += rendered_element.extra_resources
-                v = rendered_element.code
-            rendered_context[u] = v
+        for element in pre_processed_elements:
+            ext_resources += element.result.extra_resources
+            rendered_context[element.substituted_string] = element.result.code
 
-        self._content = jinja2.Template(markdown.markdown(self._markdown_template, extensions=["extra", "toc"])).render(rendered_context)
+        self._content = jinja2.Template(markdown.markdown(pre_proc_string, extensions=["extra", "toc"])).render(rendered_context|self._context)
         return HTMLRenderedElement(extra_resources=ext_resources+self._external_resources, 
                                    code=super().render().code)
 
