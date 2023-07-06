@@ -16,5 +16,5 @@ setup(
     keywords="",
     setup_requires=["pytest-runner"] if any(x in ("pytest", "test") for x in sys.argv) else [],
     tests_require=["pytest",],
-    install_requires=["bokeh", "markdown", "bokeh"],
+    install_requires=["bokeh", "markdown", "bokeh", "lark", "click"],
     classifiers=[])
