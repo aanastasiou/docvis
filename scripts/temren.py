@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 """
+``temren.py``
+=============
+
+A simple script to demonstrate the use of the ``HTMLPreprocMarkdown`` component.
+
+
 :author: Athanasios Anastasiou
 :date: Jul 2023
 """
@@ -36,6 +42,8 @@ def temren(template, context):
                                   HTMLPreProcMarkdownDiv(template_data, 
                                                          {"line":line,
                                                           "bar":bar},
+                                                         "%\$",
+                                                         "\$%",
                                                          context_data)],["basic_style.css"]),
                         [
                          HTMLMeta({"charset":"utf-8"}), 

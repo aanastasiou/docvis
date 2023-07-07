@@ -19,7 +19,10 @@ import sys
 sys.path.insert(0, os.path.abspath('../../'))
 
 
-extensions = ["sphinx.ext.autodoc",]
+extensions = ["sphinx.ext.autodoc",
+              "sphinx.ext.autosectionlabel",  
+             ]
+
 
 templates_path = ['_templates']
 exclude_patterns = []

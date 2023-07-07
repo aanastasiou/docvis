@@ -1,3 +1,64 @@
+"""
+Markdown
+========
+
+Markdown rendering represents an additional layer *on top* of HTML.
+
+There are two key entities in this sub module, ``HTMLMarkdownDiv`` and 
+``HTMLPreProcMarkdownDiv``.
+
+``HTMLMarkdownDiv``
+-------------------
+
+The first one is self-explanatory: It takes a markdown template, renders it to 
+HTML and embeds that HTML into a ``div`` element. This can then be rendered 
+within a document. The Markdown in that element can have dynamic components which 
+will be rendered along. For example:
+
+This...
+
+::
+  
+  the_markdown = HTMLMarkdownDiv("# Heading\nHello {{name}}", 
+                                 {"name":"Flipper"})
+
+...would render as:
+
+::
+    <div>
+      <h1>Heading</h1>
+      <p>Hello Flipper</p>
+    </div>
+
+
+``HTMLPreProcMarkdownDiv``
+--------------------------
+
+This element is similar to ``HTMLMarkdownDiv`` but it inserts another layer of
+interpretation of a small DSL that can be used to parametrise an element from 
+within the script in a safe way.
+
+The DSL (fun-dsl) *captures* Python-like function calls with named keywords **only**.
+So, something like ``myfunction(p1=value1, p2=value2)`` and so on.
+
+The purpose of fun-dsl is to provide an easy way to parametrise a given element, especially
+in the case that these elements do not have a string return value.
+
+
+This was necessary because the undelying template engine 
+(`jinja <https://jinja.palletsprojects.com/en/3.1.x/>`_), works under the assumption
+that a given variable or function call will result into a string. In addition, it is 
+difficult to "trap" the interpretation of a given tag in combination with a design 
+that returns two results that serve different purposes.
+
+
+Both elements operate with the ``extra`` and ``toc`` markdown extensions from the 
+`Python markdown package <https://python-markdown.github.io/>`_.
+
+
+:author: Athanasios Anastasiou
+:date: Jun 2023
+"""
 import jinja2
 from .core import HTMLTag, HTMLRenderedElement
 import markdown
@@ -39,14 +100,27 @@ class HTMLMarkdownDiv(HTMLTag):
 
 class HTMLPreProcMarkdownDiv(HTMLTag):
     """
-    Preprocesses the template and substitutes specific commands with "plots" over a context
+    Preprocesses the template and substitutes specific commands with their result over a context.
+
+    :param markdown_template: A markdown template string interdispersed with other tags
+    :type markdown_template: str
+    :param function_table: A mapping from the name of a function call appearing in the
+                           document and the computable name of the function. This ma,es
+    :type function_table:
+    :param context:
+    :type context:
+    :param external_resources:
+    :type external_resources:
+    :param attributes:
+    :type attributes:
+
     """
-    def __init__(self, markdown_template, function_table, context, external_resources=[], attributes={}):
+    def __init__(self, markdown_template, function_table, mark_start, mark_end, context, external_resources=[], attributes={}):
         super().__init__("div", "", external_resources, attributes)
         self._markdown_template = markdown_template
         self._context = context
         self._function_table = function_table
-        self._template_preprocessor = TemplatePreprocessor(function_table, context, "%\$", "\$%")
+        self._template_preprocessor = TemplatePreprocessor(function_table, context, mark_start, mark_end)
 
     def render(self):
         # First pre-process the template to recover all function calls and render their

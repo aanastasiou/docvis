@@ -1,7 +1,9 @@
-# from .core import HTMLTemplatedDocument
-# from .bokeh import (BokehStyledVisElement, BokehLinePlot, 
-#                     BokehStackPlot, BokehBarPlot,
-#                     NetworkxPyGraphVizImagePlot)
-# 
-# 
-# from .markdown import MarkdownVisElement, LinkDocument
+from .core import (HTMLTag, HTMLNestedTag, HTMLHead,
+                   HTMLMeta, HTMLStylesheet, HTMLPassthrough,
+                   HTMLScript, HTMLTitle, HTMLBody, HTMLDiv,
+                   HTMLParagraph, HTMLPage)
+
+from .markdown import HTMLMarkdownDiv, HTMLPreProcMarkdownDiv
+
+from .bokeh import (HTMLBokehElement, HTMLBokehBarPlot, HTMLBokehLinePlot)
+

@@ -1,3 +1,10 @@
+"""
+Bokeh visualisation elements
+============================
+
+:author: Athanasios Anastasiou
+:date: Jul 2023
+"""
 import bokeh.plotting
 import bokeh.embed
 import bokeh.core.properties

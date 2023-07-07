@@ -2,14 +2,14 @@
 API
 ===
 
-.. automodule:: docvis
+.. automodule:: docvis.core
    :members: 
 
-Scripts
-=======
+.. automodule:: docvis.markdown
+   :members: 
 
-``temren``
-----------
+.. automodule:: docvis.bokeh
+   :members: 
 
 .. automodule:: scripts.temren
    :members: temren
