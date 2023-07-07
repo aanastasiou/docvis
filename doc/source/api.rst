@@ -11,6 +11,9 @@ API
 .. automodule:: docvis.bokeh
    :members: 
 
+.. automodule:: docvis.preprocessor
+   :members:
+
 .. automodule:: scripts.temren
    :members: temren
 

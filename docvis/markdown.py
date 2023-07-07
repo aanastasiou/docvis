@@ -19,12 +19,13 @@ This...
 
 ::
   
-  the_markdown = HTMLMarkdownDiv("# Heading\nHello {{name}}", 
+  the_markdown = HTMLMarkdownDiv("# Heading\\nHello {{name}}", 
                                  {"name":"Flipper"})
 
 ...would render as:
 
 ::
+
     <div>
       <h1>Heading</h1>
       <p>Hello Flipper</p>
@@ -106,13 +107,13 @@ class HTMLPreProcMarkdownDiv(HTMLTag):
     :type markdown_template: str
     :param function_table: A mapping from the name of a function call appearing in the
                            document and the computable name of the function. This ma,es
-    :type function_table:
-    :param context:
-    :type context:
-    :param external_resources:
-    :type external_resources:
-    :param attributes:
-    :type attributes:
+    :type function_table: dict
+    :param context: A mapping from variable names to values. This is passed verbatim to jinja's render
+    :type context: dict
+    :param external_resources: A list of external resources required for this element (e.g. stylesheets, scripts)
+    :type external_resources: list
+    :param attributes: Attributes for the top level div element. Boolean attributes are rendered without a value.
+    :type attributes: dict
 
     """
     def __init__(self, markdown_template, function_table, mark_start, mark_end, context, external_resources=[], attributes={}):
@@ -125,7 +126,6 @@ class HTMLPreProcMarkdownDiv(HTMLTag):
     def render(self):
         # First pre-process the template to recover all function calls and render their
         # content
-
         pre_proc_string, pre_processed_elements, errors = self._template_preprocessor(self._markdown_template)
         
         if len(errors) > 0:
@@ -135,6 +135,7 @@ class HTMLPreProcMarkdownDiv(HTMLTag):
         html_context = {}
         ext_resources = []
         rendered_context = {}
+
         for element in pre_processed_elements:
             ext_resources += element.result.extra_resources
             rendered_context[element.substituted_string] = element.result.code

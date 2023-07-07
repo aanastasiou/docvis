@@ -42,8 +42,8 @@ def temren(template, context):
                                   HTMLPreProcMarkdownDiv(template_data, 
                                                          {"line":line,
                                                           "bar":bar},
-                                                         "%\$",
-                                                         "\$%",
+                                                         "%\$ ",
+                                                         " \$%",
                                                          context_data)],["basic_style.css"]),
                         [
                          HTMLMeta({"charset":"utf-8"}), 

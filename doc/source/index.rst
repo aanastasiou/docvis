@@ -11,7 +11,7 @@ Docvis enables Python3 programs to produce standalone HTML documents with intera
 It is largely based on `Bokeh <https://docs.bokeh.org/en/latest/index.html>`_ but can interoperate with 
 many different plotting "backends".
 
-Docvis was built to enable user defined output via Markdown **both** for text **and** diagrams.
+Docvis was built to enable **end-users** define output via Markdown **both** for text **and** diagrams.
 
 Just as you can determine a piece of text to render as ``**strong**``, using the Markdown emphasis convention,
 you can also fully determine a line plot to have different dimensions, line thickness, different data source and so on...

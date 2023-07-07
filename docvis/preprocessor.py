@@ -1,4 +1,7 @@
 """
+``fun-dsl`` Preprocessor
+========================
+
 
 :author: Athanasios Anastasiou
 :date: Jul 2023
@@ -10,6 +13,7 @@ import collections
 import uuid
 
 
+# Holds information about a fun-dsl evaluated segment
 EvaluatedSegment = collections.namedtuple("EvaluatedSegment",["result", "original_string", "substituted_string"])
 
 
@@ -45,6 +49,9 @@ class AstToValue(lark.Transformer):
         return (cap[0], cap[1])
 
     def value_idf_accessor(self, cap):
+        """
+        Return the value of an object at any depth
+        """
         # The first item is the recalled data structure, the rest of it are the fields
         current_value = cap[0]
         for a_field in cap[1:]:
@@ -52,6 +59,10 @@ class AstToValue(lark.Transformer):
         return current_value
 
     def value_idf_field_accessor(self, cap):
+        """
+        Return the value of a dictionary at any depth
+        """
+        # TODO: HIGH, add expcetions for the obvious errors that can emerge here
         # The first item is the recalled data structure, the rest of it are the fields
         current_value = cap[0]
         for a_field in cap[1:]:
@@ -86,14 +97,20 @@ class AstToValue(lark.Transformer):
         return float(n.value)
 
     def VALUE_IDF(self, n):
+        """
+        Return the value of an identified that should exist in the context.
+        """
         if n.value in self._context:
             return self._context[n.value]
         else:
             raise Exception(f"Variable {n.value} not found in context")
 
     def IDF(self, n):
+        # An identifier is returned verbatim
         return n
 
+    # Drop the delimiting tokens as they do not participate in transforming a value to 
+    # its computable form.
     def COMMA(self, item):
         return lark.Discard
 
@@ -137,6 +154,22 @@ class AstToValue(lark.Transformer):
 class TemplatePreprocessor:
     """
     Preprocesses a string template and substitutes specific string patterns
+
+    :param function_table: A mapping from the name of a function to a callable that implements the call.
+    :type function_table: dict
+    :param context: A mapping from the name of a variable to its value.
+    :type context: dict
+    :param mark_start: The opening paragraph marker (e.g. ``%\$``)
+
+                       .. note::
+
+                          The start and end marker are embedded in a regular expression to track and 
+                          extract the fun-dsl paragraphs. Therefore, if ``mark_start, mark_end``
+                          contains special (for regexp) characters, such as ``$``, these have to be 
+                          escaped.
+    :type mark_start: str
+    :param mark_end: The closing paragraph marker (e.g. ``\$%``)
+    :type mark_end: str
     """
 
     def __init__(self, function_table, context, mark_start, mark_end):
@@ -152,7 +185,7 @@ class TemplatePreprocessor:
 
     def __function_call_grammar__(self):
         """
-        Sets up the grammar that is used to recognise a "function call".
+        Set up the Lark grammar that is used to recognise a "function call".
         """
         return r"""
         DBL_QUOTE: "\""
@@ -199,7 +232,7 @@ class TemplatePreprocessor:
     
     def __call__(self, a_string): 
         """
-        Parses a string and evaluates the function_calls safely.
+        Parse a string and evaluate the function_calls safely.
         """
         processed_string = ""
         evaluation_results = []
