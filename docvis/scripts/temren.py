@@ -9,9 +9,9 @@ A simple script to demonstrate the use of the ``HTMLPreprocMarkdown`` component.
 :author: Athanasios Anastasiou
 :date: Jul 2023
 """
-from docvis.core import HTMLMeta, HTMLStylesheet, HTMLTitle, HTMLBody, HTMLPage, HTMLScript
-from docvis.markdown import HTMLMarkdownDiv, HTMLPreProcMarkdownDiv
-from docvis.bokeh import HTMLBokehLinePlot, HTMLBokehBarPlot
+from .core import HTMLMeta, HTMLStylesheet, HTMLTitle, HTMLBody, HTMLPage, HTMLScript
+from .markdown import HTMLMarkdownDiv, HTMLPreProcMarkdownDiv
+from .bokeh import HTMLBokehLinePlot, HTMLBokehBarPlot
 import sys
 import click
 import json
