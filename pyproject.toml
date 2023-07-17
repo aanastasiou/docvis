@@ -1,0 +1,42 @@
+[project]
+name = "docvis"
+version = "0.0.1"
+description = "Standalone dynamic visualisation documents"
+readme = "./README.rst"
+authors = [{name="Athanasios Anastasiou", email="athanastasiou@gmail.com"}]
+requires-python = ">=3.11"
+
+dependencies = [
+  "bokeh",
+  "markdown",
+  "lark", 
+  "click"
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+]
+
+# license
+
+[project.urls]
+#homepage = ""
+documentation = "https://docvis.readthedocs.io/en/latest/"
+repository = "https://github.com/aanastasiou/docvis"
+#changelog = ""
+
+[project.scripts]
+temren = "scripts.temren:main"
+
+[build-system]
+build-backend = 'setuptools.build_meta'
+requires = [
+    'setuptools>=45',
+]
+
+[tool.setuptools]
+packages = ["docvis"]
+
+
+
