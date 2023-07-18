@@ -27,7 +27,7 @@ repository = "https://github.com/aanastasiou/docvis"
 #changelog = ""
 
 [project.scripts]
-temren = "scripts.temren:main"
+temren = "docvis.scripts.temren:temren"
 
 [build-system]
 build-backend = 'setuptools.build_meta'
