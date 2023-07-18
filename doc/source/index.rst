@@ -6,17 +6,26 @@
 Welcome to docvis's documentation!
 ==================================
 
-Docvis enables Python3 programs to produce standalone HTML documents with interactive plot elements.
+Docvis enables Python3 programs to produce standalone HTML documents with dynamically reconfigurable 
+elements, right from the markup.
 
-It is largely based on `Bokeh <https://docs.bokeh.org/en/latest/index.html>`_ but can interoperate with 
+Markup languages provide great flexibility in creating documents with very little effort, compared to 
+writing HTML directly. However, their "markings" are typically used to modify the appearance of a span 
+of text and are not meant to accept parameters that modify the end result of the markup.
+
+Docvis ammends that by providing an extra pre-processing layer that captures the equivalent of a "tag"
+along with parameters that customise its appearance.
+
+The motivating use-case for Docvis was to enable **end-users** to define the structure of a document
+via Markdown **both** in terms of text and its appearance **as well as** diagrams and their apperance.
+
+Here is an example:
+
+.. image:: resources/figures/docvis_example.png
+
+
+Docvis is largely based on `Bokeh <https://docs.bokeh.org/en/latest/index.html>`_ but can interoperate with 
 many different plotting "backends".
-
-Docvis was built to enable **end-users** define output via Markdown **both** for text **and** diagrams.
-
-Just as you can determine a piece of text to render as ``**strong**``, using the Markdown emphasis convention,
-you can also fully determine a line plot to have different dimensions, line thickness, different data source and so on...
-
-...all via markup.
 
 
 .. toctree::

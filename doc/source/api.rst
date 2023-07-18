@@ -14,6 +14,6 @@ API
 .. automodule:: docvis.preprocessor
    :members:
 
-.. automodule:: scripts.temren
+.. automodule:: docvis.scripts.temren
    :members: temren
 
