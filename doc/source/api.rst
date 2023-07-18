@@ -2,18 +2,10 @@
 API
 ===
 
-.. automodule:: docvis.core
-   :members: 
 
-.. automodule:: docvis.markdown
-   :members: 
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
 
-.. automodule:: docvis.bokeh
-   :members: 
-
-.. automodule:: docvis.preprocessor
-   :members:
-
-.. automodule:: docvis.scripts.temren
-   :members: temren
-
+   api_docvis
+   api_scripts

@@ -32,6 +32,9 @@ many different plotting "backends".
    :maxdepth: 2
    :caption: Contents:
 
+   installation
+   usage
+   developing
    api
 
 
