@@ -33,8 +33,8 @@ many different plotting "backends".
    :caption: Contents:
 
    installation
+   design
    usage
-   developing
    api
 
 
