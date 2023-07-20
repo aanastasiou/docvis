@@ -64,6 +64,7 @@ import jinja2
 from .core import HTMLTag, HTMLRenderedElement
 import markdown
 from .preprocessor import TemplatePreprocessor
+from .exceptions import TemplatePreprocError
 
 class HTMLMarkdownDiv(HTMLTag):
     """
@@ -130,7 +131,7 @@ class HTMLPreProcMarkdownDiv(HTMLTag):
         
         if len(errors) > 0:
             # Otherwise raise an error exception
-            raise Exception("Errors during plot generation")
+            raise TemplatePreprocError(errors)
                 
         html_context = {}
         ext_resources = []

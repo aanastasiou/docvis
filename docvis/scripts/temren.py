@@ -11,6 +11,7 @@ A simple script to demonstrate the use of the ``HTMLPreprocMarkdown`` component.
 """
 from ..core import HTMLMeta, HTMLTitle, HTMLBody, HTMLPage
 from ..utils import DefaultDocVisMarkdownDiv, HTMLPreProcMarkdownDiv, bokeh_line_plot, bokeh_bar_plot
+from ..exceptions import TemplatePreprocError
 import sys
 import click
 import json
@@ -38,8 +39,13 @@ def temren(template, context):
                          HTMLMeta({"charset":"utf-8"}), 
                          HTMLTitle("Temren"),
                         ])
+    
+    try:
+        sys.stdout.write(the_page.render())
+    except TemplatePreprocError as e:
+        for an_error in e._errors:
+            click.echo(an_error)
 
-    sys.stdout.write(the_page.render())
 
 
 if __name__ == "__main__":

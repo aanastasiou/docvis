@@ -12,6 +12,7 @@ import re
 import collections
 import uuid
 
+from .exceptions import VariableNotFoundError, FunDSLSyntaxError
 
 # Holds information about a fun-dsl evaluated segment
 EvaluatedSegment = collections.namedtuple("EvaluatedSegment",["result", "original_string", "substituted_string"])
@@ -103,7 +104,7 @@ class AstToValue(lark.Transformer):
         if n.value in self._context:
             return self._context[n.value]
         else:
-            raise Exception(f"Variable {n.value} not found in context")
+            raise VariableNotFoundError(f"Variable {n.value} not found in context")
 
     def IDF(self, n):
         # An identifier is returned verbatim
@@ -182,7 +183,6 @@ class TemplatePreprocessor:
                                           start="function_call")
         self._ast_transformer = AstToValue(self._context)
 
-
     def __function_call_grammar__(self):
         """
         Set up the Lark grammar that is used to recognise a "function call".
@@ -238,18 +238,24 @@ class TemplatePreprocessor:
         evaluation_results = []
         errors = []    
 
-        for seg_idx, a_segment in enumerate(re.compile(self._mark_start + " *(.*?) *" + self._mark_end).split(a_string)):
+        #delimited_segments = re.compile("(?s)" + self._mark_start + " *(.*?) *" + self._mark_end).split(a_string)
+        delimited_segments = re.compile("(?s)%\$ *(.*?) *\$%").split(a_string)
+
+        import pdb
+        pdb.set_trace()
+
+        for seg_idx, a_segment in enumerate(delimited_segments):
             # The splitting results in a string where the odd entries contain the 
             # function calls.
             if seg_idx % 2 == 0:
                 processed_string += a_segment
             else:
-                # Parse the function call
-                token_stream = self._fun_call_parser.parse(a_segment)
-                # Turn the parsed segment into a computable data structure
-                data_value = self._ast_transformer.transform(token_stream)
-                # Evaluate the string
                 try:
+                   # Parse the function call
+                   token_stream = self._fun_call_parser.parse(a_segment)
+                   # Turn the parsed segment into a computable data structure
+                   data_value = self._ast_transformer.transform(token_stream)
+                   # Evaluate the string
                    eval_result = self._function_table[data_value["function_name"]](**data_value["function_parameters"])
                    # Get a tag to substitute
                    subst_tag = f"element_{str(uuid.uuid4()).replace('-', '')}"
@@ -259,6 +265,13 @@ class TemplatePreprocessor:
                    # If everything has gone well, append the tag that will render this 
                    # segment.
                    processed_string += f"{{{{{subst_tag}}}}}"
+                # TODO: HIGH, Known errors should be returned as string messages, unknown as their original exception.    
+                except lark.visitors.VisitError as e:
+                    # See https://lark-parser.readthedocs.io/en/latest/recipes.html#unwinding-visiterror-after-a-transformer-visitor-exception
+                    errors.append((e.orig_exc, a_segment))
+                except lark.exceptions.UnexpectedCharacters as e:
+                    # TODO: HIGH, Make this syntax error more specific
+                    errors.append((FunDSLSyntaxError("Syntax Error"), a_segment))
                 except Exception as e:
                     # If evaluation run into problems, record the segment where the 
                     # problem occured in as well as the error
