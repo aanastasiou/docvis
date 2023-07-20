@@ -9,19 +9,11 @@ A simple script to demonstrate the use of the ``HTMLPreprocMarkdown`` component.
 :author: Athanasios Anastasiou
 :date: Jul 2023
 """
-from ..core import HTMLMeta, HTMLStylesheet, HTMLTitle, HTMLBody, HTMLPage, HTMLScript
-from ..markdown import HTMLMarkdownDiv, HTMLPreProcMarkdownDiv
-from ..bokeh import HTMLBokehLinePlot, HTMLBokehBarPlot
+from ..core import HTMLMeta, HTMLTitle, HTMLBody, HTMLPage
+from ..utils import DefaultDocVisMarkdownDiv, HTMLPreProcMarkdownDiv, bokeh_line_plot, bokeh_bar_plot
 import sys
 import click
 import json
-
-
-def line(**kwargs):
-    return HTMLBokehLinePlot(**kwargs).render()
-
-def bar(**kwargs):
-    return HTMLBokehBarPlot(**kwargs).render()
 
 
 @click.command()
@@ -39,12 +31,9 @@ def temren(template, context):
 
     # Create a very simple HTML page
     the_page = HTMLPage(HTMLBody([
-                                  HTMLPreProcMarkdownDiv(template_data, 
-                                                         {"line":line,
-                                                          "bar":bar},
-                                                         "%\$ ",
-                                                         " \$%",
-                                                         context_data)],["basic_style.css"]),
+                                  DefaultDocVisMarkdownDiv(template_data, 
+                                                           context_data)],
+                                ["page_style.css"]),
                         [
                          HTMLMeta({"charset":"utf-8"}), 
                          HTMLTitle("Temren"),

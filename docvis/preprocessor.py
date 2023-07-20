@@ -237,7 +237,7 @@ class TemplatePreprocessor:
         processed_string = ""
         evaluation_results = []
         errors = []    
-            
+
         for seg_idx, a_segment in enumerate(re.compile(self._mark_start + " *(.*?) *" + self._mark_end).split(a_string)):
             # The splitting results in a string where the odd entries contain the 
             # function calls.
