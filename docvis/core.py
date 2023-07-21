@@ -248,10 +248,9 @@ class HTMLPage:
     def render(self,):
         # First of all, render the body
         rendered_body = self._html_body.render()
-        # Now render the supplied head
-        rendered_head = self._html_head.render()
-        # Now collect the required resources from BOTH the supplpied head and body
-        resources = list(set(rendered_body.extra_resources + rendered_head.extra_resources))
+
+        # Now collect the required resources from BOTH the supplied head and body
+        resources = list(set(rendered_body.extra_resources))
         # Sort resources so that any file type scripts or stylesheets come first
         resources = sorted(resources, key = lambda x:0 if '.js' in x or '.css' in x else 1)
         head_content = []
@@ -268,7 +267,8 @@ class HTMLPage:
 
             head_content.append(element_to_add)
 
-        rendered_head = HTMLHead(head_content).render().code
+        # Add the user supplied HTMLHead children
+        rendered_head = HTMLHead(list(set(head_content + self._html_head._children))).render().code
         
-        return f"<!DOCTYPE html>\n{rendered_head}\n{rendered_body.code}"
+        return f"<!DOCTYPE html>\n<html>\n    {rendered_head}\n    {rendered_body.code}\n</html>"
 

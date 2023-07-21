@@ -1,6 +1,6 @@
-========
-Core API
-========
+==========
+DocVis API
+==========
 
 .. automodule:: docvis.core
    :members: 
@@ -13,4 +13,8 @@ Core API
 
 .. automodule:: docvis.preprocessor
    :members:
+
+.. automodule:: docvis.utils
+   :members:
+
 

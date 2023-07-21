@@ -5,5 +5,5 @@ from .core import (HTMLTag, HTMLNestedTag, HTMLHead,
 
 from .markdown import HTMLMarkdownDiv, HTMLPreProcMarkdownDiv
 
-from .bokeh import (HTMLBokehElement, HTMLBokehBarPlot, HTMLBokehLinePlot)
+from .utils import DefaultDocVisMarkdownDiv
 

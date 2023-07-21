@@ -32,9 +32,9 @@ many different plotting "backends".
    :maxdepth: 2
    :caption: Contents:
 
+   quickstart
    installation
    design
-   usage
    api
 
 

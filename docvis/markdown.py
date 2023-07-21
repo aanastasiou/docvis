@@ -79,7 +79,7 @@ class HTMLMarkdownDiv(HTMLTag):
     :param attributes: A mapping of attribute names to their values
     :type attributes: dict
     """
-    def __init__(self, markdown_template, context, external_resources=[], attributes={}):
+    def __init__(self, markdown_template, context={}, external_resources=[], attributes={}):
         super().__init__("div", "", external_resources, attributes)
         self._markdown_template = markdown_template
         self._context = context
