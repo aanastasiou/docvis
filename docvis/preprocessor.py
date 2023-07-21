@@ -238,11 +238,7 @@ class TemplatePreprocessor:
         evaluation_results = []
         errors = []    
 
-        #delimited_segments = re.compile("(?s)" + self._mark_start + " *(.*?) *" + self._mark_end).split(a_string)
-        delimited_segments = re.compile("(?s)%\$ *(.*?) *\$%").split(a_string)
-
-        import pdb
-        pdb.set_trace()
+        delimited_segments = re.compile("(?s)" + self._mark_start + "(.*?)" + self._mark_end).split(a_string)
 
         for seg_idx, a_segment in enumerate(delimited_segments):
             # The splitting results in a string where the odd entries contain the 
