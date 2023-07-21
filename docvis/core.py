@@ -240,15 +240,18 @@ class HTMLPage:
     """
     The top level HTML page.
     """
-    def __init__(self, html_body, extra_head_components=[]):
-        self._extra_head_components = extra_head_components
+    def __init__(self, html_body, html_head):
         self._html_body = html_body
+        # If an HTMLHead was not specified, add an empty one
+        self._html_head = html_head if html_head is not None else HTMLHead([])
 
     def render(self,):
         # First of all, render the body
         rendered_body = self._html_body.render()
-        # Now collect the required resources
-        resources = list(set(rendered_body.extra_resources))
+        # Now render the supplied head
+        rendered_head = self._html_head.render()
+        # Now collect the required resources from BOTH the supplpied head and body
+        resources = list(set(rendered_body.extra_resources + rendered_head.extra_resources))
         # Sort resources so that any file type scripts or stylesheets come first
         resources = sorted(resources, key = lambda x:0 if '.js' in x or '.css' in x else 1)
         head_content = []
@@ -265,8 +268,6 @@ class HTMLPage:
 
             head_content.append(element_to_add)
 
-        # Add the external head components
-        head_content = self._extra_head_components + head_content
         rendered_head = HTMLHead(head_content).render().code
         
         return f"<!DOCTYPE html>\n{rendered_head}\n{rendered_body.code}"

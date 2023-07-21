@@ -9,7 +9,7 @@ A simple script to demonstrate the use of the ``HTMLPreprocMarkdown`` component.
 :author: Athanasios Anastasiou
 :date: Jul 2023
 """
-from ..core import HTMLMeta, HTMLTitle, HTMLBody, HTMLPage
+from ..core import HTMLMeta, HTMLTitle, HTMLBody, HTMLPage, HTMLHead
 from ..utils import DefaultDocVisMarkdownDiv, HTMLPreProcMarkdownDiv, bokeh_line_plot, bokeh_bar_plot
 from ..exceptions import TemplatePreprocError
 import sys
@@ -35,10 +35,11 @@ def temren(template, context):
                                   DefaultDocVisMarkdownDiv(template_data, 
                                                            context_data)],
                                 ["page_style.css"]),
-                        [
-                         HTMLMeta({"charset":"utf-8"}), 
-                         HTMLTitle("Temren"),
-                        ])
+                        HTMLHead([
+                                  HTMLMeta({"charset":"utf-8"}), 
+                                  HTMLTitle("Temren"),
+                                  ])
+                        )
     
     try:
         sys.stdout.write(the_page.render())
