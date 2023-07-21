@@ -27,5 +27,5 @@ For a summary of its output:
 
 .. image:: doc/source/resources/figures/docvis_example.png
 
-
+For more details, checkout `the project's documentation page. <https://docvis.readthedocs.io/en/latest/>`_
 
