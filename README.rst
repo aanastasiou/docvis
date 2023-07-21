@@ -1,4 +1,5 @@
-# DocVis
+DocVis
+======
 
 A package to create dynamic stand-alone documents with complex data visualisations,
 right from the markup.
@@ -7,7 +8,7 @@ Use it to give your **end-users** the ability to compile their own standalone HT
 files, complete with interactive plots that they can configure entirely from the 
 markup.
 
-Plots can be entered with "markup" such as:
+Plots can be entered along with markdown with the following:
 
 ``%$ line(x=[0,1,2,3], y=[0,1,0,1], title="Some plot") $%``
 
