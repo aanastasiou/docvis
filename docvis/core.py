@@ -120,9 +120,9 @@ class HTMLTag:
             start_tag = end_tag = ""
 
         if len(self._content) > 0:
-            rendered_content = f"{start_tag}\n{self._content}\n{end_tag}\n"
+            rendered_content = f"{start_tag}{self._content}{end_tag}"
         else:
-            rendered_content = f"{start_tag}{end_tag}\n"
+            rendered_content = f"{start_tag}{end_tag}"
 
 
         return HTMLRenderedElement(extra_resources=self._external_resources, 
@@ -141,8 +141,6 @@ class HTMLNestedTag(HTMLTag):
         rendered_content =  [u.render() for u in self._children]
         # TODO: HIGH, optimise the following
         self._content = "".join([u.code for u in rendered_content])
-        if len(self._children)>0:
-            self._content = "\n".join(map(lambda x:f"    {x}",self._content.split("\n")))
         deeper_resources = list(functools.reduce(lambda x,y:x+y, [u.extra_resources for u in rendered_content], [])) + self._external_resources
         return HTMLRenderedElement(extra_resources=deeper_resources, 
                                    code = super().render().code)
@@ -270,5 +268,5 @@ class HTMLPage:
         # Add the user supplied HTMLHead children
         rendered_head = HTMLHead(list(set(head_content + self._html_head._children))).render().code
         
-        return f"<!DOCTYPE html>\n<html>\n    {rendered_head}\n    {rendered_body.code}\n</html>"
+        return f"<!DOCTYPE html><html>{rendered_head}{rendered_body.code}</html>"
 
