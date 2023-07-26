@@ -139,7 +139,6 @@ class HTMLNestedTag(HTMLTag):
 
     def render(self):
         rendered_content =  [u.render() for u in self._children]
-        # TODO: HIGH, optimise the following
         self._content = "".join([u.code for u in rendered_content])
         deeper_resources = list(functools.reduce(lambda x,y:x+y, [u.extra_resources for u in rendered_content], [])) + self._external_resources
         return HTMLRenderedElement(extra_resources=deeper_resources, 
