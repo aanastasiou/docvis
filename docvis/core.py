@@ -74,6 +74,7 @@ Design
 import os
 import collections
 import functools
+import re
 
 
 HTMLRenderedElement = collections.namedtuple("HTMLRenderedElement", ["extra_resources", "code"])
@@ -267,5 +268,5 @@ class HTMLPage:
         # Add the user supplied HTMLHead children
         rendered_head = HTMLHead(list(set(head_content + self._html_head._children))).render().code
         
-        return f"<!DOCTYPE html><html>{rendered_head}{rendered_body.code}</html>"
+        return re.sub(" +", " ",f"<!DOCTYPE html><html>{rendered_head}{rendered_body.code}</html>")
 
