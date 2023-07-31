@@ -268,5 +268,5 @@ class HTMLPage:
         # Add the user supplied HTMLHead children
         rendered_head = HTMLHead(list(set(head_content + self._html_head._children))).render().code
         
-        return re.sub(" +", " ",f"<!DOCTYPE html><html>{rendered_head}{rendered_body.code}</html>")
+        return re.sub(r" +", " ",f"<!DOCTYPE html><html>{rendered_head}{rendered_body.code}</html>")
 

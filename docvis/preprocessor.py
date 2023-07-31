@@ -183,7 +183,8 @@ class TemplatePreprocessor:
                                           start="function_call")
         self._ast_transformer = AstToValue(self._context)
 
-    def __function_call_grammar__(self):
+    @staticmethod
+    def __function_call_grammar__():
         """
         Set up the Lark grammar that is used to recognise a "function call".
         """
