@@ -1,6 +1,6 @@
 [project]
 name = "docvis"
-version = "0.0.1"
+version = "0.0.2"
 description = "Standalone dynamic visualisation documents"
 readme = "./README.rst"
 authors = [{name="Athanasios Anastasiou", email="athanastasiou@gmail.com"}]
