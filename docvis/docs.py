@@ -34,6 +34,9 @@ Specifically:
 """
 
 from .core import HTMLPage, HTMLBody, HTMLTitle, HTMLStylesheet, HTMLMeta, HTMLHead
+from .utils import DefaultDocVisMarkdownDiv
+import pathlib
+import os
 
 class Document:
     """
@@ -51,9 +54,24 @@ class Document:
         self._index_page = index_page
         self._content_pages = content_pages
         # TODO: HIGH, doc_name needs to be regexp checked that it can be used as a path.
-        self._dir_name = dir_name
+        self._dir_name = dir_name if dir_name is not None else doc_name
 
     def render(self):
+        doc_path = pathlib.Path(self._dir_name)
+        # If the directory does not exist in the CWD, create it
+        if not doc_path.exists():
+            doc_path.mkdir(parents=True)
+        # Save the CWD, switch to the doc working dir
+        cwd = os.getcwd()
+        os.chdir(doc_path)
+        # Build all content pages first
+        for a_page in self._content_pages:
+            a_page.render()
+        # Build the index
+        self._index_page.render()
+        # Restore the cwd
+        os.chdir(cwd)
+
         pass
 
 
@@ -68,22 +86,26 @@ class Page:
     :param file_name: The filename for this page if it has to be set explicitly.
     :type file_name: str
     """
-    def __init__(self, page_name, template, data_context, external_resources, file_name = None):
+    def __init__(self, page_name, template, data_context, extra_resources=[], file_name=None):
         self._page_name = page_name 
         self._template = template
-        self._index_page = index_page
-        self._content_pages = content_pages
+        self._data_context = data_context
+        self._extra_resources = extra_resources
         # TODO: HIGH, file_name needs to be regexp checked that it can be used as a path.
         self._file_name  = file_name if file_name is not None else f"{page_name}.html"
 
     def render(self):
         # Build the page that will be rendered
-        html_pg = HTMLPage(HTMLBody(HTMLPreProcMarkdownDiv(self._
-                                    )), 
+        html_pg = HTMLPage(HTMLBody([
+                                     DefaultDocVisMarkdownDiv(self._template, 
+                                                              self._data_context,
+                                                              external_resources=self._extra_resources)
+                                    ]), 
                            HTMLHead([HTMLTitle(self._page_name),
                                      HTMLMeta({"charset":"utf-8"}),
                                     ])
                           )
-        pass
+        with open(self._file_name,"wt") as fd:
+            fd.write(html_pg.render())
 
 
