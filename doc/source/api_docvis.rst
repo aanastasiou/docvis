@@ -17,4 +17,8 @@ DocVis API
 .. automodule:: docvis.utils
    :members:
 
+.. automodule:: docvis.docs
+   :members:
+
+
 
