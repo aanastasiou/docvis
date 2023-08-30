@@ -24,9 +24,6 @@ def bokeh_bar_plot(**kwargs):
     """
     return HTMLBokehBarPlot(**kwargs).render()
 
-def link_to_element(the_doc, desc, the_path):
-    return f"[{desc}](the_doc.get_parent().get)"
-
 
 class DefaultDocVisMarkdownDiv(HTMLPreProcMarkdownDiv):
     """

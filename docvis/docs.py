@@ -67,9 +67,11 @@ class Document(RenderableDocElement):
     """
     def __init__(self, doc_name, index_page, content_elements, dir_name = None):
         super().__init__(doc_name)
-        self._content_elements = dict([(c_key, copy.deepcopy(c_el)) for c_key, c_el in map(lambda x:(x.name, x), content_elements)])
         # Add the index page
-        self._content_elements |= {"idx":index_page}
+        index_page._name = "index"
+        self._content_elements = {}
+        self._content_elements |= {"index":index_page}
+        self._content_elements |= dict([(c_key, c_el) for c_key, c_el in map(lambda x:(x.name, x), content_elements)])
 
         # All elements are parented to the current element
         # This works because all elements are copies of the originals and can have 
@@ -106,7 +108,7 @@ class Document(RenderableDocElement):
             return target_element.element_by_path("/".join(path_elements[1:]))
         return target_element
 
-    def get_parent(self):
+    def get_root(self):
         if self.parent is not None:
             return self.parent.get_parent()
         else:
@@ -138,11 +140,14 @@ class Page(RenderableDocElement):
         # TODO: HIGH, file_name needs to be regexp checked that it can be used as a path.
         self._file_name  = file_name if file_name is not None else f"{page_name}.html"
 
+    def _link_to_element(self, desc, path):
+        return f"<a href=\"{self.get_root().element_by_path(path).get_disk_path()}\">{desc}</a>"
+
     def render(self):
         # Build the page that will be rendered
         html_pg = HTMLPage(HTMLBody([
                                      DefaultDocVisMarkdownDiv(self._template, 
-                                                              self._data_context,
+                                                              self._data_context|{"link_to_element":self._link_to_element},
                                                               external_resources=self._extra_resources)
                                     ]), 
                            HTMLHead([HTMLTitle(self.name),
@@ -158,5 +163,8 @@ class Page(RenderableDocElement):
         else:
             return f"{self._file_name}"
 
-
-
+    def get_root(self):
+        if self.parent is not None:
+            return self.parent.get_root()
+        else:
+            return self
