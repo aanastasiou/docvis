@@ -33,26 +33,50 @@ Specifically:
    * DATA (from local variables)
 """
 
-from .core import HTMLPage, HTMLBody, HTMLTitle, HTMLStylesheet, HTMLMeta, HTMLHead
+from .core import RenderableElement, HTMLPage, HTMLBody, HTMLTitle, HTMLStylesheet, HTMLMeta, HTMLHead
 from .utils import DefaultDocVisMarkdownDiv
 import pathlib
 import os
+import copy
 
-class Document:
+class RenderableDocElement(RenderableElement):
+    """
+    Base class for all objects that can produce *hard-copies*.
+    """
+    def __init__(self, name, parent=None):
+        self._name = name
+        self._parent = parent
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def parent(self):
+        return self._parent
+
+
+class Document(RenderableDocElement):
     """
     :param doc_name: A logical name for the document
     :type doc_name: str
-    :param index_page: A docvis.Page that references content pages.
-    :type index_page: docvis.docs.Page
-    :param content_pages: A list of docvis.docs.Page that represent each content page in the document
-    :type content_pages: List[docvis.docs.Page]
+    :param content_elements: A list of docvis.docs.Page that represent each content page in the document
+    :type content_elements: List[docvis.docs.Page]
     :param dir_name: The directory name if it has to be set explicitly.
     :type dir_name: str
     """
-    def __init__(self, doc_name, index_page, content_pages, dir_name = None):
-        self._doc_name = doc_name 
-        self._index_page = index_page
-        self._content_pages = content_pages
+    def __init__(self, doc_name, index_page, content_elements, dir_name = None):
+        super().__init__(doc_name)
+        self._content_elements = dict([(c_key, copy.deepcopy(c_el)) for c_key, c_el in map(lambda x:(x.name, x), content_elements)])
+        # Add the index page
+        self._content_elements |= {"idx":index_page}
+
+        # All elements are parented to the current element
+        # This works because all elements are copies of the originals and can have 
+        # different parents
+        for an_element in self._content_elements.values():
+            an_element._parent = self
+
         # TODO: HIGH, doc_name needs to be regexp checked that it can be used as a path.
         self._dir_name = dir_name if dir_name is not None else doc_name
 
@@ -64,18 +88,38 @@ class Document:
         # Save the CWD, switch to the doc working dir
         cwd = os.getcwd()
         os.chdir(doc_path)
-        # Build all content pages first
-        for a_page in self._content_pages:
-            a_page.render()
-        # Build the index
-        self._index_page.render()
+        # Build all content 
+        for a_content_el in self._content_elements.values():
+            a_content_el.render()
         # Restore the cwd
         os.chdir(cwd)
 
-        pass
+    def element_by_path(self, path):
+        path_elements = path.split("/")
+        try:
+            target_element = self._content_elements[path_elements[0]]
+        except KeyError:
+            raise Exception(f"{path_elements[0]} does not exist")
+        if isinstance(target_element, Page) and len(path_elements) > 1:
+            raise Exception(f"{path_elements[0]} does not exist")
+        if isinstance(target_element, Document) and len(path_elements) > 1:
+            return target_element.element_by_path("/".join(path_elements[1:]))
+        return target_element
+
+    def get_parent(self):
+        if self.parent is not None:
+            return self.parent.get_parent()
+        else:
+            return self
+
+    def get_disk_path(self):
+        if self.parent is not None:
+            return f"{self.parent.get_disk_path()}/{self._dir_name}"
+        else:
+            return f"{self._dir_name}"
 
 
-class Page:
+class Page(RenderableDocElement):
     """
     :param page_name: A logical name for the page
     :type page_name: str
@@ -87,7 +131,7 @@ class Page:
     :type file_name: str
     """
     def __init__(self, page_name, template, data_context, extra_resources=[], file_name=None):
-        self._page_name = page_name 
+        super().__init__(page_name)
         self._template = template
         self._data_context = data_context
         self._extra_resources = extra_resources
@@ -101,11 +145,18 @@ class Page:
                                                               self._data_context,
                                                               external_resources=self._extra_resources)
                                     ]), 
-                           HTMLHead([HTMLTitle(self._page_name),
+                           HTMLHead([HTMLTitle(self.name),
                                      HTMLMeta({"charset":"utf-8"}),
                                     ])
                           )
         with open(self._file_name,"wt") as fd:
             fd.write(html_pg.render())
+
+    def get_disk_path(self):
+        if self.parent is not None:
+            return f"{self.parent.get_disk_path()}/{self._file_name}"
+        else:
+            return f"{self._file_name}"
+
 
 

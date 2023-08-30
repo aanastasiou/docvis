@@ -79,7 +79,15 @@ import re
 
 HTMLRenderedElement = collections.namedtuple("HTMLRenderedElement", ["extra_resources", "code"])
 
-class HTMLTag:
+class RenderableElement:
+    """
+    Base class for all *elements* that return code or fragments of code
+    """
+    def render(self):
+        raise NotImplementedError(f"type(self) not expected to be instantiated directly")
+
+
+class HTMLTag(RenderableElement):
     """
     Represents a generic HTML tag
 
@@ -234,7 +242,7 @@ class HTMLPassthrough(HTMLTag):
         super().__init__("", content, external_resources, attributes={})
 
 
-class HTMLPage:
+class HTMLPage(RenderableElement):
     """
     The top level HTML page.
     """
