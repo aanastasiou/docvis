@@ -43,17 +43,42 @@ class RenderableDocElement(RenderableElement):
     """
     Base class for all objects that can produce *hard-copies*.
     """
-    def __init__(self, name, parent=None):
-        self._name = name
+    def __init__(self, logical_name, physical_name=None, parent=None):
+        # TODO: HIGH, doc_name needs to be regexp checked that it can be used as a path.
+        self._logical_name = logical_name
+        self._physical_name = physical_name if physical_name is not None else logical_name
         self._parent = parent
+        
+    @property
+    def logical_name(self):
+        return self._logical_name
 
     @property
-    def name(self):
-        return self._name
+    def physical_name(self):
+        return self._physical_name
 
     @property
     def parent(self):
         return self._parent
+
+    def get_disk_path(self):
+        if self.parent is not None:
+            return f"{self.parent.get_disk_path()}/{self.physical_name}"
+        else:
+            return f"{self.physical_name}"
+
+    def get_root(self):
+        if self.parent is not None:
+            return self.parent.get_root()
+        else:
+            return self
+
+    def collect_parents(self):
+        if self._parent is not None:
+            return {self._parent} | self._parent.collect_parents()
+        else:
+            return set()
+
 
 
 class Document(RenderableDocElement):
@@ -67,11 +92,27 @@ class Document(RenderableDocElement):
     """
     def __init__(self, doc_name, index_page, content_elements, dir_name = None):
         super().__init__(doc_name)
+        # Check that no circular references are added
+        prohibited_elements = map(id, self.collect_parents())
+        for an_element in content_elements:
+            if id(an_element) in prohibited_elements:
+                raise Exception(f"Element {an_element.logical_name}({an_elemen.physical_name} is causing a circular reference")
+
+        # Content elements should not have already been parented
+        for an_element in content_elements:
+            if an_element.parent is not None:
+                raise Exception(f"{an_element} already belongs to a document hierarchy")
+
+        # Content elements should not contain a page whose logical name is "index"
+        for an_element in content_elements:
+            if an_element.logical_name == "index":
+                raise Exception("No content page should be named 'index'")
+        
         # Add the index page
-        index_page._name = "index"
+        index_page._logical_name = "index"
         self._content_elements = {}
         self._content_elements |= {"index":index_page}
-        self._content_elements |= dict([(c_key, c_el) for c_key, c_el in map(lambda x:(x.name, x), content_elements)])
+        self._content_elements |= dict([(c_key, c_el) for c_key, c_el in map(lambda x:(x.logical_name, x), content_elements)])
 
         # All elements are parented to the current element
         # This works because all elements are copies of the originals and can have 
@@ -79,16 +120,19 @@ class Document(RenderableDocElement):
         for an_element in self._content_elements.values():
             an_element._parent = self
 
-        # TODO: HIGH, doc_name needs to be regexp checked that it can be used as a path.
-        self._dir_name = dir_name if dir_name is not None else doc_name
-
     def render(self):
-        doc_path = pathlib.Path(self._dir_name)
+        doc_path = pathlib.Path(self.physical_name)
         # If the directory does not exist in the CWD, create it
         if not doc_path.exists():
             doc_path.mkdir(parents=True)
-        # Save the CWD, switch to the doc working dir
+        # Save the CWD
         cwd = os.getcwd()
+        # Get the index page
+        index_page = list(filter(lambda x:x.logical_name == "index", self._content_elements.values()))
+        # If an index page has been provided then render it
+        if len(index_page) > 0:
+            index_page[0].render()
+        # Switch to the doc working dir
         os.chdir(doc_path)
         # Build all content 
         for a_content_el in self._content_elements.values():
@@ -108,18 +152,6 @@ class Document(RenderableDocElement):
             return target_element.element_by_path("/".join(path_elements[1:]))
         return target_element
 
-    def get_root(self):
-        if self.parent is not None:
-            return self.parent.get_parent()
-        else:
-            return self
-
-    def get_disk_path(self):
-        if self.parent is not None:
-            return f"{self.parent.get_disk_path()}/{self._dir_name}"
-        else:
-            return f"{self._dir_name}"
-
 
 class Page(RenderableDocElement):
     """
@@ -138,7 +170,7 @@ class Page(RenderableDocElement):
         self._data_context = data_context
         self._extra_resources = extra_resources
         # TODO: HIGH, file_name needs to be regexp checked that it can be used as a path.
-        self._file_name  = file_name if file_name is not None else f"{page_name}.html"
+        self._physical_name  = file_name if file_name is not None else f"{page_name}.html"
 
     def _link_to_element(self, desc, path):
         return f"<a href=\"{self.get_root().element_by_path(path).get_disk_path()}\">{desc}</a>"
@@ -150,21 +182,11 @@ class Page(RenderableDocElement):
                                                               self._data_context|{"link_to_element":self._link_to_element},
                                                               external_resources=self._extra_resources)
                                     ]), 
-                           HTMLHead([HTMLTitle(self.name),
+                           HTMLHead([HTMLTitle(self.logical_name),
                                      HTMLMeta({"charset":"utf-8"}),
                                     ])
                           )
-        with open(self._file_name,"wt") as fd:
+        with open(self.physical_name,"wt") as fd:
             fd.write(html_pg.render())
 
-    def get_disk_path(self):
-        if self.parent is not None:
-            return f"{self.parent.get_disk_path()}/{self._file_name}"
-        else:
-            return f"{self._file_name}"
-
-    def get_root(self):
-        if self.parent is not None:
-            return self.parent.get_root()
-        else:
-            return self
+    
