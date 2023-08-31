@@ -172,7 +172,22 @@ class Page(RenderableDocElement):
         # TODO: HIGH, file_name needs to be regexp checked that it can be used as a path.
         self._physical_name  = file_name if file_name is not None else f"{page_name}.html"
 
+    def with_respect(self, from_path, to_path):
+        # Find their common root
+        pc_from = from_path.split("/")
+        pc_to = to_path.split("/")
+        u = 0
+        for k in range(0, max(len(pc_from), len(pc_to))):
+            pc_from_v = pc_from[k] if k < len(pc_from) else None
+            pc_to_v = pc_to[k] if k < len(pc_to) else None
+            if pc_from_v == pc_to_v:
+                u += 1
+        return ("/".join([".."] * (len(pc_from)-u))) + "/" + "/".join(pc_to[u:])
+
+
     def _link_to_element(self, desc, path):
+        import pdb
+        pdb.set_trace()
         return f"<a href=\"{self.get_root().element_by_path(path).get_disk_path()}\">{desc}</a>"
 
     def render(self):
