@@ -64,9 +64,9 @@ class RenderableDocElement(RenderableElement):
     def get_disk_path(self):
         if self.parent is not None:
             prefix = self.parent.get_disk_path()
-
-            return f"{prefix}{'/' if len(prefix)>0 else ''}{self.physical_name}"
+            return f"{prefix}{'/' if len(prefix)!=0 else ''}{self.physical_name}"
         else:
+            #return f"{self.physical_name}"
             return ""
 
 
@@ -93,7 +93,7 @@ class Document(RenderableDocElement):
     :param dir_name: The directory name if it has to be set explicitly.
     :type dir_name: str
     """
-    def __init__(self, doc_name, index_page, content_elements, dir_name = None):
+    def __init__(self, doc_name, content_elements, dir_name = None):
         super().__init__(doc_name)
         # Check that no circular references are added
         prohibited_elements = map(id, self.collect_parents())
@@ -106,15 +106,7 @@ class Document(RenderableDocElement):
             if an_element.parent is not None:
                 raise Exception(f"{an_element} already belongs to a document hierarchy")
 
-        # Content elements should not contain a page whose logical name is "index"
-        for an_element in content_elements:
-            if an_element.logical_name == "index":
-                raise Exception("No content page should be named 'index'")
-        
-        # Add the index page
-        index_page._logical_name = "index"
         self._content_elements = {}
-        self._content_elements |= {"index":index_page}
         self._content_elements |= dict([(c_key, c_el) for c_key, c_el in map(lambda x:(x.logical_name, x), content_elements)])
 
         # All elements are parented to the current element
@@ -132,13 +124,8 @@ class Document(RenderableDocElement):
         cwd = os.getcwd()
         # Switch to the doc working dir
         os.chdir(doc_path)
-        # Get the index page
-        index_page = list(filter(lambda x:x.logical_name == "index", self._content_elements.values()))
-        # If an index page has been provided then render it
-        if len(index_page) > 0:
-            index_page[0].render()
         # Build all content 
-        for a_content_el in list(filter(lambda x:x.logical_name != "index",self._content_elements.values())):
+        for a_content_el in self._content_elements.values():
             a_content_el.render()
         # Restore the cwd
         os.chdir(cwd)
@@ -146,15 +133,13 @@ class Document(RenderableDocElement):
     def element_by_path(self, path):
         path_elements = path.split("/")
         root_logical_name = self.get_root().logical_name 
-        import pdb
-        pdb.set_trace()
-        if path_elements[0] != root_logical_name:
-            raise Exception(f"{path} is not contained within the {root_logical_name} document")
-        path_elements = path_elements[1:]
-        try:
-            target_element = self._content_elements[path_elements[0]]
-        except KeyError:
-            raise Exception(f"{path_elements[0]} does not exist")
+        if path_elements[0] == self.logical_name:
+            target_element = self
+        else:
+            try:
+                target_element = self._content_elements[path_elements[0]]
+            except KeyError:
+                raise Exception(f"{path_elements[0]} does not exist")
         if isinstance(target_element, Page) and len(path_elements) > 1:
             raise Exception(f"{path_elements[0]} does not exist")
         if isinstance(target_element, Document) and len(path_elements) > 1:
@@ -191,16 +176,18 @@ class Page(RenderableDocElement):
             pc_to_v = pc_to[k] if k < len(pc_to) else None
             if pc_from_v == pc_to_v:
                 u += 1
-        if u==0:
-            return to_path
+        import pdb
+        pdb.set_trace()
+        if len(pc_to) >= len(pc_from):
+            # Going to
+            return "/".join(pc_to[(u):]) 
         else:
+            # Coming from
             return ("/".join([".."] * (len(pc_from)-u))) + "/" + "/".join(pc_to[u:])
-
+            
 
     def _link_to_element(self, desc, path):
         uu = self.with_respect(self.get_disk_path(), self.get_root().element_by_path(path).get_disk_path())
-        #import pdb
-        #pdb.set_trace()
         #return f"<a href=\"{self.get_root().element_by_path(path).get_disk_path()}\">{desc}</a>"
         return f"<a href=\"{uu}\">{desc}</a>"
 
