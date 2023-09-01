@@ -176,8 +176,6 @@ class Page(RenderableDocElement):
             pc_to_v = pc_to[k] if k < len(pc_to) else None
             if pc_from_v == pc_to_v:
                 u += 1
-        import pdb
-        pdb.set_trace()
         if len(pc_to) >= len(pc_from):
             # Going to
             return "/".join(pc_to[(u):]) 
