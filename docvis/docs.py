@@ -63,9 +63,12 @@ class RenderableDocElement(RenderableElement):
 
     def get_disk_path(self):
         if self.parent is not None:
-            return f"{self.parent.get_disk_path()}/{self.physical_name}"
+            prefix = self.parent.get_disk_path()
+
+            return f"{prefix}{'/' if len(prefix)>0 else ''}{self.physical_name}"
         else:
-            return f"{self.physical_name}"
+            return ""
+
 
     def get_root(self):
         if self.parent is not None:
@@ -127,21 +130,27 @@ class Document(RenderableDocElement):
             doc_path.mkdir(parents=True)
         # Save the CWD
         cwd = os.getcwd()
+        # Switch to the doc working dir
+        os.chdir(doc_path)
         # Get the index page
         index_page = list(filter(lambda x:x.logical_name == "index", self._content_elements.values()))
         # If an index page has been provided then render it
         if len(index_page) > 0:
             index_page[0].render()
-        # Switch to the doc working dir
-        os.chdir(doc_path)
         # Build all content 
-        for a_content_el in self._content_elements.values():
+        for a_content_el in list(filter(lambda x:x.logical_name != "index",self._content_elements.values())):
             a_content_el.render()
         # Restore the cwd
         os.chdir(cwd)
 
     def element_by_path(self, path):
         path_elements = path.split("/")
+        root_logical_name = self.get_root().logical_name 
+        import pdb
+        pdb.set_trace()
+        if path_elements[0] != root_logical_name:
+            raise Exception(f"{path} is not contained within the {root_logical_name} document")
+        path_elements = path_elements[1:]
         try:
             target_element = self._content_elements[path_elements[0]]
         except KeyError:
@@ -182,13 +191,18 @@ class Page(RenderableDocElement):
             pc_to_v = pc_to[k] if k < len(pc_to) else None
             if pc_from_v == pc_to_v:
                 u += 1
-        return ("/".join([".."] * (len(pc_from)-u))) + "/" + "/".join(pc_to[u:])
+        if u==0:
+            return to_path
+        else:
+            return ("/".join([".."] * (len(pc_from)-u))) + "/" + "/".join(pc_to[u:])
 
 
     def _link_to_element(self, desc, path):
-        import pdb
-        pdb.set_trace()
-        return f"<a href=\"{self.get_root().element_by_path(path).get_disk_path()}\">{desc}</a>"
+        uu = self.with_respect(self.get_disk_path(), self.get_root().element_by_path(path).get_disk_path())
+        #import pdb
+        #pdb.set_trace()
+        #return f"<a href=\"{self.get_root().element_by_path(path).get_disk_path()}\">{desc}</a>"
+        return f"<a href=\"{uu}\">{desc}</a>"
 
     def render(self):
         # Build the page that will be rendered
