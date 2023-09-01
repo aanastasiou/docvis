@@ -183,7 +183,7 @@ class Page(RenderableDocElement):
             return "/".join(pc_to[(u):]) 
         else:
             # Coming from
-            return ("/".join([".."] * (len(pc_from)-u))) + "/" + "/".join(pc_to[u:])
+            return ("/".join([".."] * (len(pc_from)-(u+1)))) + "/" + "/".join(pc_to[u:])
             
 
     def _link_to_element(self, desc, path):
