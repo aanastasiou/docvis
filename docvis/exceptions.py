@@ -1,7 +1,4 @@
 """
-Exceptions
-==========
-
 Hierarhcy of exceptions to specify DocVis' errors.
 
 :author: Athanasios Anastasiou

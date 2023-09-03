@@ -1,7 +1,4 @@
 """
-Utilities
-=========
-
 Helper functions and pre-configured elements making up the default functionality of DocVis.
 
 :author: Athanasios Anastasiou

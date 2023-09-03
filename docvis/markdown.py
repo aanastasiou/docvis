@@ -1,7 +1,4 @@
 """
-Markdown
-========
-
 Markdown rendering represents an additional layer *on top* of HTML.
 
 There are two key entities in this sub module, ``HTMLMarkdownDiv`` and 

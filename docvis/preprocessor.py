@@ -1,6 +1,5 @@
 """
-``fun-dsl`` Preprocessor
-========================
+The fun-dsl preprocessor.
 
 
 :author: Athanasios Anastasiou

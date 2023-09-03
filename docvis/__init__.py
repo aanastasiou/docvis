@@ -6,4 +6,4 @@ from .core import (HTMLTag, HTMLNestedTag, HTMLHead,
 from .markdown import HTMLMarkdownDiv, HTMLPreProcMarkdownDiv
 
 from .utils import DefaultDocVisMarkdownDiv
-
+from .docs import Document, Page

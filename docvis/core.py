@@ -1,7 +1,4 @@
 """
-Core
-====
-
 Docvis' core elements are used to "build" dynamic HTML documents.
 
 The input to these elements are common Python objects describing various user-data
