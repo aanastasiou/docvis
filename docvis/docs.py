@@ -273,18 +273,21 @@ class Page(RenderableDocElement):
     def _link_to_element(self, desc, path):
         return f"<a href=\"{self.make_path_relative(self.get_fs_path(), self.get_root().element_by_path(path).get_fs_path())}\">{desc}</a>"
 
-    def render(self):
+    def _get_HTMLPage(self): 
         # Build the page that will be rendered
-        html_pg = HTMLPage(HTMLBody([
-                                     DefaultDocVisMarkdownDiv(self._template, 
-                                                              self._data_context|{"link_to":self._link_to_element},
-                                                              external_resources=self._extra_resources)
-                                    ]), 
-                           HTMLHead([HTMLTitle(self.logical_name),
-                                     HTMLMeta({"charset":"utf-8"}),
-                                    ])
-                          )
+        return HTMLPage(HTMLBody([
+                                  DefaultDocVisMarkdownDiv(self._template, 
+                                                           self._data_context|{"link_to":self._link_to_element},
+                                                           external_resources=self._extra_resources)
+                                 ]),
+                                 HTMLHead([
+                                           HTMLTitle(self.logical_name),
+                                           HTMLMeta({"charset":"utf-8"}),
+                                          ])
+                       )
+
+    def render(self):
         with open(self.physical_name,"wt") as fd:
-            fd.write(html_pg.render())
+            fd.write(self._get_HTMLPage().render())
 
     
