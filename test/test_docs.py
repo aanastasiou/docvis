@@ -49,3 +49,17 @@ def test_init_document():
 
     assert id(d1.element_by_path("main")) == id(d1)
     assert id(d1.element_by_path("main/subdoc")) == id(d2)
+
+def test_init_document_multi_source():
+    """
+    If an already parented element (Document or Page) is added to a Document, it gets copied across
+    """
+
+    p1 = Page("p1", "Some page", {})
+    p2 = Page("p2", "Some other page", {})
+
+    d1 = Document("d1", [p1])
+    d2 = Document("d2", [p1,p2])
+ 
+    assert id(d1.element_by_path("d1/p1")) != id(d2.element_by_path("d2/p1"))
+

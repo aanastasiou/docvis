@@ -155,6 +155,19 @@ class RenderableDocElement(RenderableElement):
         else:
             return set()
 
+    def get_object_data(self):
+        """
+        Return a dictionary representation of an element
+        """
+        return {"logical_name":self._logical_name,
+                "physical_name":self._physical_name}
+
+    def get_path_desc(self):
+        """
+        Return the path along with the object at the end of that path
+        """
+        return None
+
 
 class Document(RenderableDocElement):
     """
@@ -176,13 +189,22 @@ class Document(RenderableDocElement):
             if id(an_element) in prohibited_elements:
                 raise Exception(f"Element {an_element.logical_name}({an_elemen.physical_name} is causing a circular reference")
 
-        # Content elements should not have already been parented
-        for an_element in content_elements:
-            if an_element.parent is not None:
-                raise Exception(f"{an_element} already belongs to a document hierarchy")
+        # # Content elements should not have already been parented
+        # for an_element in content_elements:
+        #     if an_element.parent is not None:
+        #         raise Exception(f"{an_element} already belongs to a document hierarchy")
+
+        # self._content_elements = {}
+        # self._content_elements |= dict([(c_key, c_el) for c_key, c_el in map(lambda x:(x.logical_name, x), content_elements)])
 
         self._content_elements = {}
-        self._content_elements |= dict([(c_key, c_el) for c_key, c_el in map(lambda x:(x.logical_name, x), content_elements)])
+        for an_element in content_elements:
+            element_to_add = an_element
+            if element_to_add._parent is not None:
+                # If an attempt is made to add an already parented Page or Document to a Document then make a copy of it.
+                element_to_add = copy.deepcopy(element_to_add)
+                element_to_add._parent = None
+            self._content_elements[element_to_add.logical_name] = element_to_add
 
         # All elements are parented to the current element
         # This works because all elements are copies of the originals and can have 
@@ -226,6 +248,21 @@ class Document(RenderableDocElement):
         if isinstance(target_element, Document) and len(path_elements) > 1:
             return target_element.element_by_path("/".join(path_elements[1:]))
         return target_element
+
+    def get_path_spec(self):
+        dict_to_ret = {}
+        dict_to_ret |= {self._logical_name: self.get_object_data()}
+        for an_element in self._content_elements.values():
+            element_spec = an_element.get_path_spec()
+            for a_key, a_val in element_spec.items():
+                dict_to_ret |= {f"{self._logical_name}/{a_key}":a_val}
+        return dict_to_ret
+
+    def get_object_data(self):
+        return {"doc_name": self._logical_name,
+                "dir_name": self._physical_name,
+                }
+
 
 
 class Page(RenderableDocElement):
@@ -290,4 +327,13 @@ class Page(RenderableDocElement):
         with open(self.physical_name,"wt") as fd:
             fd.write(self._get_HTMLPage().render())
 
-    
+    def get_object_data(self):
+        return {"page_name": self._logical_name,
+                "template": self._template,
+                "data_context": self._data_context,
+                "extra_resources": self._extra_resources,
+                "file_name": self._physical_name
+                  }
+
+    def get_path_spec(self):
+        return {self._logical_name:self.get_object_data()}
