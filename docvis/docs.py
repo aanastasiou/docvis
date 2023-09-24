@@ -162,12 +162,7 @@ class RenderableDocElement(RenderableElement):
         return {"logical_name":self._logical_name,
                 "physical_name":self._physical_name}
 
-    def get_path_desc(self):
-        """
-        Return the path along with the object at the end of that path
-        """
-        return None
-
+ 
 
 class Document(RenderableDocElement):
     """
@@ -261,8 +256,8 @@ class Document(RenderableDocElement):
     def get_object_data(self):
         return {"doc_name": self._logical_name,
                 "dir_name": self._physical_name,
+                "content_elements": [u.get_object_data() for u in self._content_elements.values()],
                 }
-
 
 
 class Page(RenderableDocElement):
@@ -334,6 +329,3 @@ class Page(RenderableDocElement):
                 "extra_resources": self._extra_resources,
                 "file_name": self._physical_name
                   }
-
-    def get_path_spec(self):
-        return {self._logical_name:self.get_object_data()}
